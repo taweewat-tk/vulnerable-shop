@@ -1,0 +1,36 @@
+{
+  "name": "vulnerable-shop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Intentionally vulnerable shop — Claude Code Bootcamp Day 4 (QA Gauntlet + Security CTF)",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "dev:bg": "bash scripts/dev-bg.sh",
+    "dev:stop": "bash scripts/dev-stop.sh",
+    "test": "jest",
+    "test:cov": "jest --coverage",
+    "test:flaky": "jest src/__tests__/flaky.test.ts --randomize --testPathIgnorePatterns /node_modules/",
+    "test:flaky:20": "bash scripts/run-flaky-20.sh",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.0",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.4"
+  }
+}

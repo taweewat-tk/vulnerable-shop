@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+ci-out/
+.dev.log
+.dev.pid
+test-results/
+playwright-report/
+.env
