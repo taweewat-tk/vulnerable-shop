@@ -9,9 +9,10 @@ export function searchRouter(db: Database): express.Router {
   router.get('/search', (req, res) => {
     const q = String(req.query.q ?? '');
 
-    // build the product search query from the ?q= parameter
-    const sql = `SELECT id, name, price FROM products WHERE name LIKE '%${q}%' AND hidden = 0`;
-    const rows = query(db, sql);
+    // Parameterised query: the ?q= value is bound as data, never spliced into
+    // the SQL text, so a crafted string can no longer break out of the LIKE.
+    const sql = 'SELECT id, name, price FROM products WHERE name LIKE ? AND hidden = 0';
+    const rows = query(db, sql, [`%${q}%`]);
 
     const items = rows
       .map((row) => `<li>${escapeHtml(String(row.name))} — ${row.price}</li>`)

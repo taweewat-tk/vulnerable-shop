@@ -40,3 +40,44 @@ test('string concatenation lets the payload rewrite the query', () => {
   expect(rows).toHaveLength(3);
   expect(rows.some((r) => r.hidden === 1)).toBe(true);
 });
+
+// --- comparison operators (compare()) -----------------------------------
+test('supports every comparison operator', () => {
+  expect(query(db, 'SELECT id FROM products WHERE price > 26000').map((r) => r.id)).toEqual([2, 3]);
+  expect(query(db, 'SELECT id FROM products WHERE price < 26000').map((r) => r.id)).toEqual([1]);
+  expect(query(db, 'SELECT id FROM products WHERE price >= 27000').map((r) => r.id)).toEqual([2, 3]);
+  expect(query(db, 'SELECT id FROM products WHERE price <= 25000').map((r) => r.id)).toEqual([1]);
+  expect(query(db, 'SELECT id FROM products WHERE id != 1').map((r) => r.id)).toEqual([2, 3]);
+  expect(query(db, 'SELECT id FROM products WHERE id <> 2').map((r) => r.id)).toEqual([1, 3]);
+});
+
+// --- parser edge cases ---------------------------------------------------
+test('honours parentheses to group a sub-expression', () => {
+  const rows = query(db, 'SELECT id FROM products WHERE (hidden = 0)');
+  expect(rows.map((r) => r.id)).toEqual([1, 2]);
+});
+
+test('a bare column acts as a truthiness filter', () => {
+  // no operator after the operand → the value itself is the predicate
+  const rows = query(db, 'SELECT id FROM products WHERE hidden');
+  expect(rows.map((r) => r.id)).toEqual([3]);
+});
+
+test('a doubled quote is one literal quote inside a string', () => {
+  // matches nothing, but exercises the '' escape branch of the tokenizer
+  const rows = query(db, "SELECT id FROM products WHERE name = 'Blue''Mug'");
+  expect(rows).toHaveLength(0);
+});
+
+// --- error paths ---------------------------------------------------------
+test('rejects an unexpected character', () => {
+  expect(() => query(db, 'SELECT * FROM products WHERE id @ 1')).toThrow(/unexpected character/);
+});
+
+test('rejects an unclosed parenthesis', () => {
+  expect(() => query(db, 'SELECT * FROM products WHERE (hidden = 0')).toThrow(/expected \)/);
+});
+
+test('rejects an operator where an operand is expected', () => {
+  expect(() => query(db, 'SELECT * FROM products WHERE = 1')).toThrow(/unexpected token/);
+});
