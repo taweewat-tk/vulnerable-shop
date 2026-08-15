@@ -3,6 +3,10 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+concurrency:
+  group: security-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -30,8 +34,7 @@ jobs:
 
           # Fail closed if the model invocation itself errors (network, auth, budget, etc.)
           if ! claude -p "ตรวจความปลอดภัยของ repo นี้ รายงานเฉพาะของที่ยืนยันได้ ขึ้นต้นแต่ละข้อด้วย CRITICAL/HIGH/MEDIUM/LOW แล้วตามด้วยไฟล์:บรรทัด" \
-            --output-format json \
-            --max-budget-usd 0.50 > /tmp/security.json; then
+            --output-format json > /tmp/security.json; then
             echo "::error::claude -p invocation failed (non-zero exit) — failing the security gate closed"
             exit 1
           fi

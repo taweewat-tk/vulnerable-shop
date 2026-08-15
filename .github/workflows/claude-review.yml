@@ -3,6 +3,10 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: write
@@ -32,8 +36,7 @@ jobs:
         run: |
           git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr.diff
           claude -p "รีวิว diff นี้ ตอบเป็นรายการ พร้อมระบุไฟล์:บรรทัด และระดับความรุนแรง ห้ามตอบ LGTM เปล่า ๆ: $(cat /tmp/pr.diff)" \
-            --output-format json \
-            --max-budget-usd 0.50 > /tmp/review.json
+            --output-format json > /tmp/review.json
           jq -r '.result' /tmp/review.json > /tmp/review.md
           jq -r '"ค่าใช้จ่ายรอบนี้: $" + (.total_cost_usd|tostring)' /tmp/review.json >> /tmp/review.md
 
