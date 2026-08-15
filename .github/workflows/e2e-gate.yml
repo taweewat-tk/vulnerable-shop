@@ -23,7 +23,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: รัน Playwright E2E (บล็อกเมื่อ fail)
-        run: npx playwright test --reporter=html --trace=retain-on-failure
+        run: npx playwright test --reporter=list,html --trace=retain-on-failure
 
       - name: อัปโหลด Playwright report เมื่อ E2E แดง
         if: failure()
