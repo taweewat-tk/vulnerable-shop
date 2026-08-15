@@ -19,6 +19,14 @@ export function ordersRouter(db: Database): express.Router {
       return;
     }
 
+    // Enforce ownership: a caller may only read their own orders. Return 404
+    // (not 403) so the endpoint does not confirm that someone else's order id
+    // exists.
+    if (Number(rows[0].userId) !== callerId) {
+      res.status(404).json({ error: 'not found' });
+      return;
+    }
+
     res.json(rows[0]);
   });
 

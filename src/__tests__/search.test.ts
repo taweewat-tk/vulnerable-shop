@@ -16,8 +16,11 @@ test('a normal search for a hidden product name still excludes it', async () => 
   expect(res.text).not.toContain('Unreleased Prototype');
 });
 
-test('a crafted search string leaks hidden products', async () => {
+// Recording test for the SQL injection at search.ts. It used to assert the
+// leak succeeded; after switching to a parameterised query the crafted string
+// is bound as data, so the hidden product must NOT appear.
+test('a crafted search string no longer leaks hidden products (SQLi fixed)', async () => {
   const res = await request(createApp()).get('/search').query({ q: "' OR '1'='1' --" });
   expect(res.status).toBe(200);
-  expect(res.text).toContain('Unreleased Prototype');
+  expect(res.text).not.toContain('Unreleased Prototype');
 });

@@ -16,9 +16,11 @@ export function reviewsRouter(db: Database): express.Router {
 
     const reviews = query(db, 'SELECT * FROM reviews WHERE productId = ?', [id]);
 
-    // render each stored review into the list
+    // render each stored review into the list — both the author and the body
+    // are attacker-controlled, so both go through escapeHtml. Leaving row.body
+    // raw was a stored-XSS hole: a saved <img onerror> ran in later visitors.
     const rendered = reviews
-      .map((row) => `<li><b>${escapeHtml(String(row.author))}</b>: ${row.body}</li>`)
+      .map((row) => `<li><b>${escapeHtml(String(row.author))}</b>: ${escapeHtml(String(row.body))}</li>`)
       .join('\n');
 
     res.send(

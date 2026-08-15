@@ -15,13 +15,18 @@ test('the .env file is present in the repository', () => {
   expect(fs.readFileSync(envPath, 'utf8')).toContain('SESSION_SECRET=');
 });
 
-test('the error handler logs the incoming authorization header', async () => {
+// Recording test for the secret-in-logs issue at errorHandler.ts. It used to
+// assert the bearer token was written to the error log; the handler no longer
+// logs the Authorization header, so the token must be absent while the request
+// path is still logged for diagnostics.
+test('the error handler does NOT log the authorization header (secret-in-logs fixed)', async () => {
   const spy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
   await request(createApp()).get('/boom').set('Authorization', 'Bearer super-secret-token');
 
   const logged = spy.mock.calls.flat().join(' ');
-  expect(logged).toContain('super-secret-token');
+  expect(logged).not.toContain('super-secret-token');
+  expect(logged).toContain('/boom');
 
   spy.mockRestore();
 });
