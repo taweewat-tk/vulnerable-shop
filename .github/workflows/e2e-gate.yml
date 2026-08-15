@@ -1,0 +1,36 @@
+name: E2E gate
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: ติดตั้ง browser ของ Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: รัน Playwright E2E (บล็อกเมื่อ fail)
+        run: npx playwright test --reporter=html --trace=retain-on-failure
+
+      - name: อัปโหลด Playwright report เมื่อ E2E แดง
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
